@@ -35,11 +35,12 @@ export const errorHandler: ErrorRequestHandler = (
     code = 'INVALID_FILE_TYPE';
   }
 
-  // Don't expose internal details in production
-  const message =
-    statusCode === 500 && process.env.NODE_ENV !== 'development'
-      ? 'An internal server error occurred.'
-      : err.message;
+  let message = err.message;
+  if (err.message.includes("Can't reach database server at `localhost") || err.message.includes("Can't reach database server")) {
+    statusCode = 503;
+    code = 'DATABASE_UNAVAILABLE';
+    message = "Database connection failed. The backend cannot reach 'localhost:5432' because PostgreSQL is not running inside this cloud container. In your Render Dashboard, please create a PostgreSQL database and paste its Internal Database URL into the DATABASE_URL environment variable under formback-69en -> Environment.";
+  }
 
   res.status(statusCode).json({
     success: false,
