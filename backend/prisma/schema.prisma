@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @db.VarChar(200)
+  category          String?  @db.VarChar(50)
+  sourceImagePath   String?  @map("source_image_path")
+  sourceImageMimeType String? @map("source_image_mime_type") @db.VarChar(100)
+  sourceImageSize   Int?     @map("source_image_size")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  generationJobs GenerationJob[]
+  modelAssets    ModelAsset[]
+
+  @@map("products")
+}
+
+model GenerationJob {
+  id              String    @id @default(uuid()) @db.Uuid
+  productId       String    @map("product_id") @db.Uuid
+  providerName    String    @map("provider_name") @db.VarChar(50)
+  providerTaskId  String?   @map("provider_task_id") @db.VarChar(200)
+  status          String    @default("QUEUED") @db.VarChar(20)
+  providerStatus  String?   @map("provider_status") @db.VarChar(50)
+  progress        Int?
+  errorCode       String?   @map("error_code") @db.VarChar(100)
+  errorMessage    String?   @map("error_message") @db.Text
+  retryCount      Int       @default(0) @map("retry_count")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  completedAt     DateTime? @map("completed_at")
+
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  modelAssets ModelAsset[]
+
+  @@index([productId])
+  @@index([status])
+  @@index([providerTaskId])
+  @@map("generation_jobs")
+}
+
+model ModelAsset {
+  id              String   @id @default(uuid()) @db.Uuid
+  productId       String   @map("product_id") @db.Uuid
+  generationJobId String   @map("generation_job_id") @db.Uuid
+  localFilePath   String   @map("local_file_path")
+  format          String   @db.VarChar(20)
+  mimeType        String   @map("mime_type") @db.VarChar(100)
+  fileSize        Int      @map("file_size")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  generationJob GenerationJob @relation(fields: [generationJobId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([generationJobId])
+  @@map("model_assets")
+}

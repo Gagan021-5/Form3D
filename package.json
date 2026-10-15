@@ -1,0 +1,35 @@
+{
+  "name": "forma3d",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered image-to-3D product visualization",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "concurrently -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:api": "npm run dev --workspace=backend",
+    "dev:web": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=backend && npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:api": "npm run build --workspace=backend",
+    "build:web": "npm run build --workspace=frontend",
+    "test": "npm run test --workspace=backend",
+    "test:backend": "npm run test --workspace=backend",
+    "test:api": "npm run test --workspace=backend",
+    "lint": "npm run lint --workspace=frontend",
+    "db:generate": "npm run db:generate --workspace=backend",
+    "db:migrate": "npm run db:migrate --workspace=backend",
+    "db:push": "npm run db:push --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

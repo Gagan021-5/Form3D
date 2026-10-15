@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #FAFBFC;
+    --surface: #FFFFFF;
+    --text-primary: #17243A;
+    --text-secondary: #687386;
+    --accent: #4568E8;
+    --accent-hover: #3454CC;
+    --border: #E8ECF2;
+    --muted: #F2F5F9;
+    --success: #16835D;
+    --error: #C43D4B;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .subtle-border {
+    border: 1px solid #E8ECF2;
+  }
+  .card-shadow {
+    box-shadow: 0 1px 3px 0 rgba(23, 36, 58, 0.05), 0 1px 2px -1px rgba(23, 36, 58, 0.04);
+  }
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px 0 rgba(23, 36, 58, 0.08);
+    border-color: #D1D9E6;
+  }
+}

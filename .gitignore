@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Production build artifacts
+dist/
+build/
+backend/dist/
+frontend/dist/
+packages/*/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local storage and database uploads
+backend/data/
+data/
+*.local
+
+# Logs and coverage
+*.log
+coverage/
+.turbo/
+.DS_Store
+Thumbs.db
