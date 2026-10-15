@@ -14,12 +14,15 @@ model Product {
   sourceImagePath   String?  @map("source_image_path")
   sourceImageMimeType String? @map("source_image_mime_type") @db.VarChar(100)
   sourceImageSize   Int?     @map("source_image_size")
+  shopifyProductId    String?  @map("shopify_product_id") @db.VarChar(100)
+  shopifyShopDomain   String?  @map("shopify_shop_domain") @db.VarChar(200)
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   generationJobs GenerationJob[]
   modelAssets    ModelAsset[]
 
+  @@index([shopifyProductId])
   @@map("products")
 }
 

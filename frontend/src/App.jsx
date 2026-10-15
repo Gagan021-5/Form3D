@@ -6,6 +6,7 @@ import { UploadPage } from './pages/UploadPage.jsx';
 import { GenerationPage } from './pages/GenerationPage.jsx';
 import { ViewerPage } from './pages/ViewerPage.jsx';
 import { LibraryPage } from './pages/LibraryPage.jsx';
+import { ShopifyPreviewPage } from './pages/ShopifyPreviewPage.jsx';
 
 export function App() {
   return (
@@ -16,6 +17,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/shopify/preview" element={<ShopifyPreviewPage />} />
             <Route path="/generations/:id" element={<GenerationPage />} />
             <Route path="/viewer/:id" element={<ViewerPage />} />
             <Route path="/library" element={<LibraryPage />} />

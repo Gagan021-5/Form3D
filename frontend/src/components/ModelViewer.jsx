@@ -102,11 +102,14 @@ export function ModelViewer({
   productName = 'Product Model',
   onDownload,
   className = '',
+  enableAR = true,
 }) {
   const [autoRotate, setAutoRotate] = useState(true);
   const [wireframe, setWireframe] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [showARModal, setShowARModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const containerRef = useRef(null);
   const controlsRef = useRef(null);
@@ -124,6 +127,42 @@ export function ModelViewer({
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
     }
+  };
+
+  // ─── Real AR Room Placement Handoff ──────────────────────────────
+  const handleViewInRoom = () => {
+    const userAgent = (navigator.userAgent || '').toLowerCase();
+    const isAndroid = userAgent.includes('android');
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+
+    const absoluteGlbUrl = modelUrl.startsWith('http')
+      ? modelUrl
+      : new URL(modelUrl, window.location.origin).href;
+
+    if (isAndroid) {
+      // Launch Google Scene Viewer via Android Intent for genuine AR floor placement
+      const sceneViewerUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(
+        absoluteGlbUrl
+      )}&mode=ar_only&resizable=true&title=${encodeURIComponent(
+        productName
+      )}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(
+        window.location.href
+      )};end;`;
+
+      window.location.href = sceneViewerUrl;
+    } else if (isIOS) {
+      // iOS Safari requires USDZ for native Quick Look AR. Show clear guidance modal.
+      setShowARModal(true);
+    } else {
+      // Desktop: Show QR Code & mobile handoff modal
+      setShowARModal(true);
+    }
+  };
+
+  const copyPageLink = () => {
+    navigator.clipboard?.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   if (loadError) {
@@ -221,7 +260,7 @@ export function ModelViewer({
             dampingFactor={0.05}
             minDistance={1.0}
             maxDistance={8.0}
-            maxPolarAngle={Math.PI / 2 + 0.15} // don't flip upside down
+            maxPolarAngle={Math.PI / 2 + 0.15}
           />
         </Canvas>
       </ThreeErrorBoundary>
@@ -229,6 +268,20 @@ export function ModelViewer({
       {/* Unified Floating Toolbar Controls */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center pointer-events-none max-w-[calc(100%-1.5rem)]">
         <div className="flex items-center gap-1 sm:gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-forma-border shadow-forma-md pointer-events-auto">
+          {enableAR && (
+            <>
+              <button
+                onClick={handleViewInRoom}
+                title="View in Your Room (Augmented Reality)"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-forma-navy text-white hover:bg-forma-navy/90 active:scale-95 transition-all flex items-center gap-1.5 shadow-forma"
+              >
+                <Maximize2 className="w-3.5 h-3.5 text-forma-accent" />
+                <span>View in Room</span>
+              </button>
+              <div className="w-[1px] h-5 bg-forma-border mx-1" />
+            </>
+          )}
+
           <button
             onClick={resetCamera}
             title="Reset Camera Position"
@@ -247,7 +300,7 @@ export function ModelViewer({
           </button>
           <button
             onClick={() => setWireframe(!wireframe)}
-            title="Toggle Wireframe Mode"
+            title="Toggle Wireframe Inspection"
             className={`p-2 sm:p-1.5 rounded-xl transition-colors ${
               wireframe ? 'text-forma-accent bg-forma-accent/10' : 'text-forma-text hover:text-forma-accent hover:bg-forma-muted'
             }`}
@@ -268,10 +321,10 @@ export function ModelViewer({
               <button
                 onClick={onDownload}
                 title="Download 3D Model"
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover active:scale-95 rounded-xl shadow-forma flex items-center gap-1.5 transition-all"
+                className="px-3 py-1.5 text-xs font-semibold text-forma-text hover:text-forma-accent hover:bg-forma-muted rounded-xl transition-colors flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Download</span>
+                <span className="hidden md:inline">Download</span>
               </button>
             </>
           )}
@@ -284,6 +337,60 @@ export function ModelViewer({
           3D Studio &bull; Drag to rotate &bull; Scroll to zoom
         </span>
       </div>
+
+      {/* AR Placement Handoff Modal (for Desktop or iOS guidance) */}
+      {showARModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forma-navy/50 backdrop-blur-sm select-auto">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-forma-lg border border-forma-border space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-forma-accent/10 text-forma-accent mx-auto flex items-center justify-center">
+              <Maximize2 className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-forma-text">
+                View in Your Room (AR)
+              </h3>
+              <p className="text-xs text-forma-text-secondary leading-relaxed">
+                Scan this QR code with your phone camera to place{' '}
+                <span className="font-semibold text-forma-text">{productName}</span> in your actual room using browser-based AR.
+              </p>
+            </div>
+
+            {/* QR Code Container */}
+            <div className="p-3 bg-forma-muted rounded-xl border border-forma-border inline-block mx-auto">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                  window.location.href
+                )}`}
+                alt="Scan QR code for mobile AR"
+                className="w-40 h-40 rounded-lg mx-auto"
+                loading="lazy"
+              />
+            </div>
+
+            <div className="text-[11px] text-forma-text-secondary bg-blue-50 border border-blue-100 p-2.5 rounded-lg text-left space-y-1">
+              <p className="font-semibold text-forma-navy">Device Compatibility:</p>
+              <p>&bull; <strong>Android:</strong> Launches Google Scene Viewer (ARCore) for native floor placement.</p>
+              <p>&bull; <strong>iOS:</strong> Full 3D inspection on mobile; native Quick Look requires USDZ export.</p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={copyPageLink}
+                className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold border border-forma-border hover:bg-forma-muted text-forma-text transition-colors"
+              >
+                {copiedLink ? 'Copied Link!' : 'Copy Mobile Link'}
+              </button>
+              <button
+                onClick={() => setShowARModal(false)}
+                className="py-2 px-4 rounded-xl text-xs font-semibold bg-forma-accent text-white hover:bg-forma-accent-hover transition-colors shadow-forma"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ vi.mock('../config/database.js', () => {
       product: {
         findMany: vi.fn(),
         findUnique: vi.fn(),
+        findFirst: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),

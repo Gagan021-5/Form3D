@@ -137,6 +137,23 @@ export const api = {
     return request(ENDPOINTS.productAssets(productId));
   },
 
+  // Shopify Integration
+  async resolveShopifyProduct(payload) {
+    return request(ENDPOINTS.shopifyResolve(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async generateShopifyProduct(payload) {
+    return request(ENDPOINTS.shopifyGenerate(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
   // Helper URL generators
   getProductImageUrl(productId) {
     return ENDPOINTS.productImage(productId);

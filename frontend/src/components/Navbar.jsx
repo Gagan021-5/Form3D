@@ -72,6 +72,14 @@ export function Navbar() {
                 <Layers className="w-4 h-4" />
                 <span>Model Library</span>
               </Link>
+              <div className="w-[1px] h-5 bg-forma-border mx-1" />
+              <Link
+                to="/upload"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover shadow-forma transition-all ml-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create 3D Model</span>
+              </Link>
             </nav>
 
             {/* Mobile Hamburger Button */}

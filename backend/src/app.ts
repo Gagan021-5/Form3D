@@ -6,6 +6,7 @@ import productRoutes from './routes/products.routes.js';
 import generationRoutes from './routes/generations.routes.js';
 import assetRoutes from './routes/assets.routes.js';
 import imageRoutes from './routes/images.routes.js';
+import shopifyRoutes from './routes/shopify.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 
 export function createApp() {
@@ -46,6 +47,7 @@ export function createApp() {
   app.use(`${API_PREFIX}`, generationRoutes);
   app.use(`${API_PREFIX}/assets`, assetRoutes);
   app.use(`${API_PREFIX}/products`, imageRoutes);
+  app.use(`${API_PREFIX}/shopify`, shopifyRoutes);
 
   // ─── Error Handling ─────────────────────────────────────────
   app.use(notFoundHandler);

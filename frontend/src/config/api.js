@@ -35,6 +35,10 @@ export const ENDPOINTS = {
   assetDownload: (id) => `${API_BASE_URL}/assets/${id}/download`,
   assetServe: (id) => `${API_BASE_URL}/assets/${id}/serve`,
 
+  // Shopify Integration
+  shopifyResolve: () => `${API_BASE_URL}/shopify/resolve`,
+  shopifyGenerate: () => `${API_BASE_URL}/shopify/generate`,
+
   // System
   health: API_ORIGIN ? `${API_ORIGIN}/health` : '/health',
 };

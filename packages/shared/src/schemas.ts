@@ -62,6 +62,29 @@ export const paginationSchema = z.object({
   status: z.enum(['QUEUED', 'PROCESSING', 'DOWNLOADING', 'SUCCEEDED', 'FAILED']).optional(),
 });
 
+export const shopifyResolveSchema = z.object({
+  shopifyProductId: z.string().min(1, 'Shopify Product ID is required').max(100),
+  title: z.string().max(200).optional(),
+  imageUrl: z.string().url('Must be a valid image URL').refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    'Only HTTP/HTTPS URLs are allowed'
+  ),
+  shopDomain: z.string().max(200).optional(),
+  returnUrl: z.string().max(1000).optional(),
+});
+
+export const shopifyGenerateSchema = z.object({
+  shopifyProductId: z.string().min(1, 'Shopify Product ID is required').max(100),
+  title: z.string().max(200).optional(),
+  imageUrl: z.string().url('Must be a valid image URL').refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    'Only HTTP/HTTPS URLs are allowed'
+  ),
+  shopDomain: z.string().max(200).optional(),
+});
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+export type ShopifyResolveInput = z.infer<typeof shopifyResolveSchema>;
+export type ShopifyGenerateInput = z.infer<typeof shopifyGenerateSchema>;

@@ -111,6 +111,14 @@ export class TripoProvider {
 
       const data = (await response.json()) as TripoApiResponse<T>;
 
+      if (data.code === 2010 || data.code === 2001 || response.status === 402) {
+        throw new TripoApiError(
+          data.message || 'You do not have enough Tripo credits to create this task. Please log in to platform.tripo3d.ai and add credits.',
+          'INSUFFICIENT_CREDITS',
+          402
+        );
+      }
+
       if (data.code !== 0) {
         throw new TripoApiError(
           data.message || `Tripo API error (code: ${data.code})`,
@@ -162,14 +170,14 @@ export class TripoProvider {
   }
 
   /**
-   * Create an image-to-3D generation task.
+   * Create an image-to-3D generation task using Tripo v3 API.
    */
   async createImageTo3DTask(fileToken: string): Promise<string> {
-    const result = await this.request<TripoTaskCreationResult>('/task', {
+    const result = await this.request<TripoTaskCreationResult>('/generation/image-to-model', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'image_to_model',
+        model: 'v3.1-20260211',
         file: {
           type: 'jpg',
           file_token: fileToken,
@@ -181,7 +189,7 @@ export class TripoProvider {
   }
 
   /**
-   * Get the status of a generation task.
+   * Get the status of a generation task using Tripo v3 API.
    */
   async getTaskStatus(taskId: string): Promise<{
     status: ProviderStatus;
@@ -189,7 +197,7 @@ export class TripoProvider {
     modelUrl: string | null;
     renderedImageUrl: string | null;
   }> {
-    const result = await this.request<TripoTaskResult>(`/task/${taskId}`);
+    const result = await this.request<TripoTaskResult>(`/tasks/${taskId}`);
     const task = result.data;
 
     return {
