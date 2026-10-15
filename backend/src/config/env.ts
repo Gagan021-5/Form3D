@@ -37,7 +37,7 @@ export const config = {
   port: parseInt(process.env.PORT || process.env.API_PORT || '4000', 10),
   webUrl: optional('WEB_URL', 'http://localhost:5173'),
   apiUrl: optional('API_URL', process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || process.env.API_PORT || '4000'}`),
-  databaseUrl: required('DATABASE_URL'),
+  databaseUrl: optional('DATABASE_URL', ''),
 
   tripo: {
     apiKey: process.env.TRIPO_API_KEY || '',
@@ -73,8 +73,11 @@ export const config = {
 } as const;
 
 export function validateConfig(): void {
-  // Ensure required values exist
-  config.databaseUrl;
+  if (!config.databaseUrl) {
+    console.warn(
+      '⚠️  DATABASE_URL is not set. Database persistence will be unavailable until a PostgreSQL URL is provided.'
+    );
+  }
 
   if (!config.tripo.isConfigured) {
     console.warn(

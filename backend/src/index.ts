@@ -12,9 +12,17 @@ async function main() {
     // 2. Initialize storage directories
     await initStorage();
 
-    // 3. Connect to database
-    await prisma.$connect();
-    console.log('✓ Database connected');
+    // 3. Connect to database gracefully
+    let isDbConnected = false;
+    try {
+      await prisma.$connect();
+      isDbConnected = true;
+      console.log('✓ Database connected');
+    } catch (dbErr) {
+      console.warn('⚠️  Could not connect to PostgreSQL database:', (dbErr as Error).message);
+      console.warn('   Ensure DATABASE_URL is set correctly in your Render Environment Variables.');
+      console.warn('   The server will continue running. Static assets, demo viewer, and health checks remain active.');
+    }
 
     // 4. Create and start server
     const app = createApp();
@@ -24,8 +32,10 @@ async function main() {
       console.log(`   API:    ${config.apiUrl}/api/v1\n`);
     });
 
-    // 5. Resume any incomplete jobs from previous run
-    await resumeIncompleteJobs();
+    // 5. Resume any incomplete jobs if database is connected
+    if (isDbConnected) {
+      await resumeIncompleteJobs();
+    }
 
     // ─── Graceful Shutdown ──────────────────────────────────────
     const shutdown = async (signal: string) => {
