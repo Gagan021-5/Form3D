@@ -140,6 +140,12 @@ export function ModelViewer({
       : new URL(modelUrl, window.location.origin).href;
 
     if (isAndroid) {
+      // Google Scene Viewer requires a public HTTPS URL.
+      if (!absoluteGlbUrl.startsWith('https://')) {
+        setShowARModal(true);
+        return;
+      }
+
       // Launch Google Scene Viewer via Android Intent for genuine AR floor placement
       const sceneViewerUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(
         absoluteGlbUrl
@@ -369,9 +375,10 @@ export function ModelViewer({
             </div>
 
             <div className="text-[11px] text-forma-text-secondary bg-blue-50 border border-blue-100 p-2.5 rounded-lg text-left space-y-1">
-              <p className="font-semibold text-forma-navy">Device Compatibility:</p>
-              <p>&bull; <strong>Android:</strong> Launches Google Scene Viewer (ARCore) for native floor placement.</p>
-              <p>&bull; <strong>iOS:</strong> Full 3D inspection on mobile; native Quick Look requires USDZ export.</p>
+              <p className="font-semibold text-forma-navy">Device &amp; AR Compatibility:</p>
+              <p>&bull; <strong>Android (ARCore):</strong> Native Scene Viewer launches automatically over public HTTPS (e.g. your Render deployment or ngrok tunnel).</p>
+              <p>&bull; <strong>iOS (Quick Look):</strong> Apple requires a USDZ asset for native AR placement. Full 3D inspection is supported directly in Safari.</p>
+              <p>&bull; <strong>Desktop:</strong> Use the QR code above to test touch controls and room placement on your smartphone.</p>
             </div>
 
             <div className="flex items-center gap-2 pt-2">

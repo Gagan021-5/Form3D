@@ -38,6 +38,7 @@ router.get(
       const downloadName = `${asset.product.name.replace(/[^a-zA-Z0-9-_ ]/g, '')}.${asset.format}`;
 
       res.setHeader('Content-Type', asset.mimeType);
+      res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader(
         'Content-Disposition',
         `attachment; filename="${downloadName}"`
@@ -93,6 +94,7 @@ router.get(
       const absolutePath = getAbsolutePath(asset.localFilePath);
 
       res.setHeader('Content-Type', asset.mimeType);
+      res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Content-Length', asset.fileSize);
       res.setHeader('Cache-Control', 'public, max-age=3600');
 

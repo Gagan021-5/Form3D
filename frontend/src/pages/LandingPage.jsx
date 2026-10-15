@@ -62,11 +62,21 @@ export function LandingPage() {
                 <h2 className="text-sm sm:text-base font-bold text-forma-text">
                   Interactive 3D Studio Showcase
                 </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-forma-accent border border-blue-200">
+                  Demo Mode
+                </span>
               </div>
               <p className="text-xs text-forma-text-secondary mt-0.5">
-                Contemporary Armchair — rotate, zoom, and inspect surface topology
+                Contemporary Armchair — rotate, zoom, and inspect surface topology (0 API credits used)
               </p>
             </div>
+            <Link
+              to="/viewer/demo"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-forma-accent hover:bg-forma-accent/10 border border-forma-accent/20 transition-colors w-fit"
+            >
+              <span>Full Studio View &bull; AR</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {/* Interactive 3D Canvas */}

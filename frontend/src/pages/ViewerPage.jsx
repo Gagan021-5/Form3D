@@ -29,6 +29,23 @@ export function ViewerPage() {
   useEffect(() => {
     if (!id) return;
 
+    if (id === 'demo') {
+      setProduct({
+        id: 'demo',
+        name: 'Contemporary Armchair',
+        category: 'furniture',
+        createdAt: new Date().toISOString(),
+        isDemo: true,
+      });
+      setAsset({
+        id: 'demo-asset',
+        format: 'glb',
+        fileSize: 6256,
+      });
+      setLoading(false);
+      return;
+    }
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
@@ -62,6 +79,10 @@ export function ViewerPage() {
   }, [id, navigate]);
 
   const handleCategoryChange = async (newCategory) => {
+    if (product?.isDemo) {
+      setCategory(newCategory || '');
+      return;
+    }
     try {
       setIsUpdatingCategory(true);
       const updated = await api.updateProduct(product.id, {
@@ -78,7 +99,10 @@ export function ViewerPage() {
 
   const handleDownload = () => {
     if (!asset) return;
-    const downloadUrl = api.getAssetDownloadUrl(asset.id);
+    const downloadUrl =
+      asset.id === 'demo-asset'
+        ? '/models/sample-product.glb'
+        : api.getAssetDownloadUrl(asset.id);
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = `${product?.name || 'model'}.glb`;
@@ -125,7 +149,8 @@ export function ViewerPage() {
     );
   }
 
-  const modelServeUrl = api.getAssetServeUrl(asset.id);
+  const modelServeUrl =
+    asset?.id === 'demo-asset' ? '/models/sample-product.glb' : api.getAssetServeUrl(asset.id);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
@@ -144,10 +169,16 @@ export function ViewerPage() {
               <h1 className="text-xl font-bold text-forma-text tracking-tight">
                 {product.name}
               </h1>
-              {product.category && (
-                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-forma-muted border border-forma-border text-forma-text-secondary capitalize">
-                  {product.category}
+              {product.isDemo ? (
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-forma-accent uppercase tracking-wider">
+                  Demo Showcase &bull; Pre-Rendered
                 </span>
+              ) : (
+                product.category && (
+                  <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-forma-muted border border-forma-border text-forma-text-secondary capitalize">
+                    {product.category}
+                  </span>
+                )
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-forma-text-secondary mt-0.5">
@@ -202,7 +233,17 @@ export function ViewerPage() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-forma-text-secondary">
               Input Photograph
             </h3>
-            {product.sourceImagePath ? (
+            {product.isDemo ? (
+              <div className="rounded-lg border border-forma-border bg-forma-bg overflow-hidden p-4 flex flex-col items-center justify-center h-48 text-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-blue-50 text-forma-accent flex items-center justify-center mx-auto">
+                  <FileBox className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-semibold text-forma-text">Pre-Rendered Showcase</p>
+                <p className="text-[11px] text-forma-text-secondary leading-tight">
+                  Pre-rendered sample armchair model served from local assets. Demonstrates full Three.js controls and AR room placement with 0 API credits.
+                </p>
+              </div>
+            ) : product.sourceImagePath ? (
               <div className="rounded-lg border border-forma-border bg-forma-bg overflow-hidden p-2 flex items-center justify-center h-48 shadow-forma-sm">
                 <img
                   src={api.getProductImageUrl(product.id)}
@@ -216,7 +257,9 @@ export function ViewerPage() {
               </div>
             )}
             <p className="text-[11px] text-forma-text-secondary">
-              Generated from this 2D reference photo.
+              {product.isDemo
+                ? 'Standard GLB binary mesh with PBR metallic-roughness materials.'
+                : 'Generated from this 2D reference photo.'}
             </p>
           </div>
 
