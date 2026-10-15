@@ -15,6 +15,7 @@ import {
   Layers,
   ArrowRight,
   Eye,
+  Camera,
 } from 'lucide-react';
 
 export function UploadPage() {
@@ -173,7 +174,41 @@ export function UploadPage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+          {/* Direct AR Camera Placement Card */}
+          <div className="p-5 bg-gradient-to-b from-blue-50 to-indigo-50/30 rounded-2xl border border-blue-200/80 max-w-md mx-auto space-y-3.5 shadow-sm text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-[11px] font-bold shadow-sm">
+              <Camera className="w-3.5 h-3.5" />
+              <span>Place in Your Room (AR Camera)</span>
+            </div>
+
+            <p className="text-xs text-forma-text-secondary leading-relaxed">
+              Open your phone's camera and scan this code to project <span className="font-semibold text-forma-text">{uploadedProduct.name}</span> directly into your physical room at 1:1 scale:
+            </p>
+
+            <div className="p-3 bg-white rounded-xl border border-blue-200 inline-block shadow-sm">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                  `${window.location.origin}/viewer/${uploadedProduct.id}?ar=true`
+                )}`}
+                alt="Scan with phone camera to place in room"
+                className="w-36 h-36 rounded-lg mx-auto"
+                loading="lazy"
+              />
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => navigate(`/viewer/${uploadedProduct.id}?ar=true`)}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-md flex items-center justify-center gap-2 transition-all"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Open AR Camera on This Device</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
             <button
               type="button"
               onClick={() => navigate(`/viewer/${uploadedProduct.id}`)}

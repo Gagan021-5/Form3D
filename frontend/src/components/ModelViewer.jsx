@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState, useMemo, Component } from 'react';
+import { Suspense, useRef, useState, useMemo, useEffect, Component } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Download,
   Loader2,
+  Camera,
 } from 'lucide-react';
 
 // ─── Inner Model Component with Auto-centering and Normalization ──────
@@ -128,6 +129,23 @@ export function ModelViewer({
       document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
     }
   };
+
+  // Auto-launch AR camera if ?ar=true is present in URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ar') === 'true' && modelUrl) {
+      const userAgent = (navigator.userAgent || '').toLowerCase();
+      if (userAgent.includes('android')) {
+        const timer = setTimeout(() => {
+          handleViewInRoom();
+        }, 600);
+        return () => clearTimeout(timer);
+      } else {
+        setShowARModal(true);
+      }
+    }
+  }, [modelUrl]);
 
   // ─── Real AR Room Placement Handoff ──────────────────────────────
   const handleViewInRoom = () => {
@@ -278,10 +296,10 @@ export function ModelViewer({
             <>
               <button
                 onClick={handleViewInRoom}
-                title="View in Your Room (Augmented Reality)"
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-forma-navy text-white hover:bg-forma-navy/90 active:scale-95 transition-all flex items-center gap-1.5 shadow-forma"
+                title="View in Your Room (AR Camera)"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-1.5 shadow-md"
               >
-                <Maximize2 className="w-3.5 h-3.5 text-forma-accent" />
+                <Camera className="w-3.5 h-3.5 text-white" />
                 <span>View in Room</span>
               </button>
               <div className="w-[1px] h-5 bg-forma-border mx-1" />
@@ -364,11 +382,15 @@ export function ModelViewer({
             {/* QR Code Container (for Desktop users) */}
             <div className="p-3 bg-forma-muted rounded-xl border border-forma-border inline-block mx-auto">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                  window.location.href
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                  (() => {
+                    const u = new URL(window.location.href);
+                    u.searchParams.set('ar', 'true');
+                    return u.href;
+                  })()
                 )}`}
                 alt="Scan QR code for mobile AR"
-                className="w-40 h-40 rounded-lg mx-auto"
+                className="w-44 h-44 rounded-lg mx-auto"
                 loading="lazy"
               />
             </div>

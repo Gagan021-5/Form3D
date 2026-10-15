@@ -13,6 +13,7 @@ import {
   Loader2,
   FileBox,
   Tag,
+  Camera,
 } from 'lucide-react';
 
 export function ViewerPage() {
@@ -200,14 +201,28 @@ export function ViewerPage() {
           </div>
         </div>
 
-        {/* Download Action */}
-        <div className="flex items-center gap-3">
+        {/* Actions: AR Camera & Download */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => {
+              const arBtn = document.querySelector('button[title*="View in Your Room"]');
+              if (arBtn) {
+                arBtn.click();
+              }
+            }}
+            className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg shadow-md flex items-center gap-2 transition-all"
+            title="Place in your room using phone camera"
+          >
+            <Camera className="w-4 h-4" />
+            <span>View in Room (AR)</span>
+          </button>
+
           <button
             onClick={handleDownload}
-            className="px-4 py-2 text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover active:bg-forma-accent-hover/90 rounded-lg shadow-forma flex items-center gap-2 transition-all"
+            className="px-3.5 py-2 text-xs font-medium border border-forma-border text-forma-text hover:bg-forma-muted active:bg-forma-muted/80 rounded-lg flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download 3D Model</span>
+            <span className="hidden sm:inline">Download GLB</span>
           </button>
         </div>
       </div>
@@ -228,6 +243,38 @@ export function ViewerPage() {
 
         {/* Right: Asset & Source Image Details */}
         <div className="space-y-6">
+          {/* Card: Mobile AR Placement QR Code */}
+          <div className="bg-forma-surface rounded-xl border border-forma-border p-5 card-shadow space-y-3 text-center">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-forma-text flex items-center gap-1.5">
+                <Camera className="w-3.5 h-3.5 text-blue-600" />
+                <span>Place in Your Room</span>
+              </h3>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                AR Camera
+              </span>
+            </div>
+
+            <p className="text-xs text-forma-text-secondary leading-snug">
+              Point your phone's camera at this QR code to render <span className="font-semibold text-forma-text">{product.name}</span> in your room at 1:1 physical scale.
+            </p>
+
+            <div className="p-2.5 bg-forma-bg rounded-xl border border-forma-border inline-block mx-auto shadow-sm">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                  `${window.location.origin}/viewer/${product.id}?ar=true`
+                )}`}
+                alt="Scan to View in Room"
+                className="w-36 h-36 rounded-lg mx-auto"
+                loading="lazy"
+              />
+            </div>
+
+            <p className="text-[11px] text-forma-text-secondary">
+              Direct AR camera handoff with automatic floor detection.
+            </p>
+          </div>
+
           {/* Card: Source Photo or Direct Upload Badge */}
           <div className="bg-forma-surface rounded-xl border border-forma-border p-5 card-shadow space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forma-text-secondary">
