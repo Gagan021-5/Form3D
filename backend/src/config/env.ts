@@ -62,6 +62,7 @@ export const config = {
 
   upload: {
     maxSizeBytes: optionalInt('MAX_UPLOAD_SIZE_MB', 10) * 1024 * 1024,
+    maxModelSizeBytes: optionalInt('MAX_MODEL_UPLOAD_SIZE_MB', 100) * 1024 * 1024,
   },
 
   generation: {

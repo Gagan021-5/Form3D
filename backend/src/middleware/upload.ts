@@ -33,7 +33,7 @@ export const uploadImage = multer({
 export const uploadModel = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: MAX_MODEL_UPLOAD_SIZE_BYTES, // 50 MB
+    fileSize: config.upload.maxModelSizeBytes || MAX_MODEL_UPLOAD_SIZE_BYTES, // 100 MB default
     files: 1,
   },
   fileFilter: (_req, file, cb) => {

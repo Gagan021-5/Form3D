@@ -6,6 +6,7 @@ import {
   productIdParamSchema,
   paginationSchema,
   PRODUCT_CATEGORIES,
+  MAX_MODEL_UPLOAD_SIZE_BYTES,
 } from '@forma3d/shared';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation.js';
 import {
@@ -16,6 +17,7 @@ import {
 } from '../middleware/upload.js';
 import { saveUploadedImage, saveModelFile, deleteFile } from '../services/storage.service.js';
 import { createAppError } from '../middleware/error-handler.js';
+import { config } from '../config/env.js';
 
 const router = Router();
 
@@ -415,11 +417,12 @@ router.post(
       });
     } catch (err) {
       if (err instanceof Error && err.message.includes('File too large')) {
+        const maxMb = Math.round((config.upload.maxModelSizeBytes || MAX_MODEL_UPLOAD_SIZE_BYTES) / (1024 * 1024));
         res.status(400).json({
           success: false,
           error: {
             code: 'FILE_TOO_LARGE',
-            message: '3D model exceeds the 50 MB upload limit.',
+            message: `3D model exceeds the ${maxMb} MB upload limit.`,
           },
         });
         return;
@@ -494,11 +497,12 @@ router.post(
       });
     } catch (err) {
       if (err instanceof Error && err.message.includes('File too large')) {
+        const maxMb = Math.round((config.upload.maxModelSizeBytes || MAX_MODEL_UPLOAD_SIZE_BYTES) / (1024 * 1024));
         res.status(400).json({
           success: false,
           error: {
             code: 'FILE_TOO_LARGE',
-            message: '3D model exceeds the 50 MB upload limit.',
+            message: `3D model exceeds the ${maxMb} MB upload limit.`,
           },
         });
         return;

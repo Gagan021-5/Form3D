@@ -21,6 +21,6 @@ export const ALLOWED_MODEL_MIMES = [
     'model/gltf-binary',
     'application/octet-stream',
 ];
-export const MAX_MODEL_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+export const MAX_MODEL_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
 export const TRIPO_PROVIDER_NAME = 'tripo';
 //# sourceMappingURL=constants.js.map

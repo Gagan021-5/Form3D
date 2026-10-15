@@ -67,7 +67,7 @@ export function UploadPage() {
 
     if (file.size > MAX_MODEL_UPLOAD_SIZE_BYTES) {
       setErrorMessage(
-        `File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is 50 MB.`
+        `File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${Math.round(MAX_MODEL_UPLOAD_SIZE_BYTES / (1024 * 1024))} MB.`
       );
       return;
     }
@@ -356,7 +356,7 @@ export function UploadPage() {
                       Click to browse or drop your .GLB 3D model here
                     </p>
                     <p className="text-xs text-forma-text-secondary mt-1.5">
-                      Standard Binary glTF (.glb) &bull; Up to 50 MB &bull; Zero AI credits required
+                      Standard Binary glTF (.glb) &bull; Up to 100 MB &bull; Zero AI credits required
                     </p>
                     <p className="text-[11px] text-forma-text-secondary/70 mt-3 max-w-sm">
                       Directly import existing 3D files to test interactive orbit controls, material rendering, and Android Google Scene Viewer AR.
