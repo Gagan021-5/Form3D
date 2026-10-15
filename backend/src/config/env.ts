@@ -34,9 +34,9 @@ function optionalInt(key: string, defaultValue: number): number {
 export const config = {
   nodeEnv: optional('NODE_ENV', 'development'),
   isDev: optional('NODE_ENV', 'development') === 'development',
-  port: optionalInt('API_PORT', 4000),
+  port: parseInt(process.env.PORT || process.env.API_PORT || '4000', 10),
   webUrl: optional('WEB_URL', 'http://localhost:5173'),
-  apiUrl: optional('API_URL', 'http://localhost:4000'),
+  apiUrl: optional('API_URL', process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || process.env.API_PORT || '4000'}`),
   databaseUrl: required('DATABASE_URL'),
 
   tripo: {
