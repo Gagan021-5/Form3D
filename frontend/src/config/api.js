@@ -11,8 +11,20 @@
 
 const rawApiUrl = import.meta.env?.VITE_API_URL || '';
 
-// Base origin (e.g. "https://your-backend.onrender.com" or empty string for local proxy)
-export const API_ORIGIN = rawApiUrl ? rawApiUrl.replace(/\/+$/, '') : '';
+function resolveApiOrigin() {
+  if (rawApiUrl) {
+    return rawApiUrl.replace(/\/+$/, '');
+  }
+  // Automatic fallback for Render deployment when VITE_API_URL was not set during build
+  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+    return 'https://formback-69en.onrender.com';
+  }
+  // Local development fallback (Vite proxy to localhost:4000)
+  return '';
+}
+
+// Base origin (e.g. "https://formback-69en.onrender.com" or empty string for local proxy)
+export const API_ORIGIN = resolveApiOrigin();
 
 // Base API v1 URL
 export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api/v1` : '/api/v1';
