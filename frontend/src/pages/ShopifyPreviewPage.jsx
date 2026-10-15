@@ -110,7 +110,7 @@ export function ShopifyPreviewPage() {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Unable to connect to Forma3D server. Please verify your connection.');
+        setError('Unable to connect to Qibo3D server. Please verify your connection.');
       }
     } finally {
       setLoading(false);
@@ -260,7 +260,7 @@ export function ShopifyPreviewPage() {
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-forma-surface border border-forma-border hover:bg-forma-muted text-forma-text transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Forma3D</span>
+            <span>Back to Qibo3D</span>
           </Link>
         )}
       </div>

@@ -1,8 +1,8 @@
 {
-  "name": "forma3d",
+  "name": "qibo3d",
   "version": "0.1.0",
   "private": true,
-  "description": "AI-powered image-to-3D product visualization",
+  "description": "3D product visualization, direct model uploads, and mobile AR camera placement",
   "workspaces": [
     "packages/*",
     "backend",

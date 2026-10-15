@@ -1,0 +1,72 @@
+{% comment %}
+  Qibo3D — "View in Your Room" 3D & AR Shopify Theme Snippet
+  Usage:
+    {% render 'qibo3d-view-in-room', product: product, qibo3d_url: 'https://your-qibo3d-app.onrender.com' %}
+{% endcomment %}
+
+{%- liquid
+  assign app_base_url = qibo3d_url | default: 'http://localhost:5173'
+  assign product_id = product.id
+  assign product_title = product.title | escape
+  assign featured_img = product.featured_image | image_url: width: 1400
+
+  # Construct return URL to current product page
+  assign return_path = request.origin | append: product.url
+
+  # Build secure query parameters
+  assign preview_url = app_base_url | append: '/shopify/preview'
+  assign preview_url = preview_url | append: '?productId=' | append: product_id
+  assign preview_url = preview_url | append: '&title=' | append: product_title | url_encode
+  assign preview_url = preview_url | append: '&image=' | append: featured_img | url_encode
+  assign preview_url = preview_url | append: '&returnUrl=' | append: return_path | url_encode
+-%}
+
+{% if product.featured_image %}
+  <div class="qibo3d-container" style="margin: 12px 0 16px 0; width: 100%;">
+    <a
+      href="{{ preview_url }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="qibo3d-button"
+      id="qibo3d-view-in-room-btn"
+      aria-label="View {{ product_title }} in 3D and augmented reality"
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+        background: #0B1120;
+        color: #FFFFFF;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid #1E293B;
+        border-radius: 12px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      "
+      onmouseover="this.style.background='#1E293B'; this.style.transform='translateY(-1px)';"
+      onmouseout="this.style.background='#0B1120'; this.style.transform='translateY(0)';"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#6366F1"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+      </svg>
+      <span>View in 3D &amp; In Your Room</span>
+    </a>
+  </div>
+{% endif %}

@@ -14,7 +14,7 @@ export function LandingPage() {
   const downloadSample = () => {
     const link = document.createElement('a');
     link.href = sampleModelUrl;
-    link.download = 'forma3d-sample-product.glb';
+    link.download = 'qibo3d-sample-product.glb';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

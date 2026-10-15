@@ -27,7 +27,7 @@ async function main() {
     // 4. Create and start server
     const app = createApp();
     const server = app.listen(config.port, () => {
-      console.log(`\n🚀 Forma3D API running at ${config.apiUrl}`);
+      console.log(`\n🚀 Qibo3D API running at ${config.apiUrl}`);
       console.log(`   Health: ${config.apiUrl}/health`);
       console.log(`   API:    ${config.apiUrl}/api/v1\n`);
     });

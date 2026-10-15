@@ -37,11 +37,11 @@ export function Navbar() {
             {/* Brand Logo */}
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-xl overflow-hidden border border-forma-border bg-white shadow-forma transition-transform group-hover:scale-105 flex items-center justify-center p-0.5">
-                <img src="/logo.jpg" alt="Forma3D Logo" className="w-full h-full object-contain rounded-lg" />
+                <img src="/logo.jpg" alt="Qibo3D Logo" className="w-full h-full object-contain rounded-lg" />
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold tracking-tight text-forma-text">
-                  Forma<span className="text-forma-accent">3D</span>
+                  Qibo<span className="text-forma-accent">3D</span>
                 </span>
                 <span className="text-[10px] text-forma-text-secondary -mt-1 font-medium">
                   Studio
@@ -118,10 +118,10 @@ export function Navbar() {
           <div className="flex items-center justify-between pb-4 border-b border-forma-border">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl overflow-hidden border border-forma-border bg-white shadow-forma flex items-center justify-center p-0.5">
-                <img src="/logo.jpg" alt="Forma3D Logo" className="w-full h-full object-contain rounded-lg" />
+                <img src="/logo.jpg" alt="Qibo3D Logo" className="w-full h-full object-contain rounded-lg" />
               </div>
               <span className="text-base font-bold text-forma-text">
-                Forma<span className="text-forma-accent">3D</span>
+                Qibo<span className="text-forma-accent">3D</span>
               </span>
             </div>
             <button
@@ -174,7 +174,7 @@ export function Navbar() {
             <span>Create 3D Model</span>
           </Link>
           <p className="text-[11px] text-center text-forma-text-secondary">
-            Forma3D Studio &bull; Professional 3D Visualization
+            Qibo3D Studio &bull; Professional 3D Visualization
           </p>
         </div>
       </aside>
