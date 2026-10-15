@@ -78,7 +78,7 @@ export function Navbar() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover shadow-forma transition-all ml-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Create 3D Model</span>
+                <span>Upload 3D Model</span>
               </Link>
             </nav>
 
@@ -171,7 +171,7 @@ export function Navbar() {
             className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover shadow-forma transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Create 3D Model</span>
+            <span>Upload 3D Model</span>
           </Link>
           <p className="text-[11px] text-center text-forma-text-secondary">
             Qibo3D Studio &bull; Professional 3D Visualization

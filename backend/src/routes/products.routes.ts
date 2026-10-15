@@ -361,7 +361,7 @@ router.post(
       }
 
       const rawName = (req.body.name as string | undefined)?.trim();
-      const rawCategory = (req.body.category as string | undefined)?.trim();
+      const rawCategory = (req.body.category as string | undefined)?.trim().toLowerCase();
       const validCategory = (PRODUCT_CATEGORIES as readonly string[]).includes(rawCategory || '')
         ? rawCategory
         : null;
