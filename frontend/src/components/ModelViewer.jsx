@@ -357,12 +357,11 @@ export function ModelViewer({
                 View in Your Room (AR)
               </h3>
               <p className="text-xs text-forma-text-secondary leading-relaxed">
-                Scan this QR code with your phone camera to place{' '}
-                <span className="font-semibold text-forma-text">{productName}</span> in your actual room using browser-based AR.
+                Place <span className="font-semibold text-forma-text">{productName}</span> in your actual environment using your smartphone's camera and floor tracking.
               </p>
             </div>
 
-            {/* QR Code Container */}
+            {/* QR Code Container (for Desktop users) */}
             <div className="p-3 bg-forma-muted rounded-xl border border-forma-border inline-block mx-auto">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
@@ -374,14 +373,36 @@ export function ModelViewer({
               />
             </div>
 
-            <div className="text-[11px] text-forma-text-secondary bg-blue-50 border border-blue-100 p-2.5 rounded-lg text-left space-y-1">
-              <p className="font-semibold text-forma-navy">Device &amp; AR Compatibility:</p>
-              <p>&bull; <strong>Android (ARCore):</strong> Native Scene Viewer launches automatically over public HTTPS (e.g. your Render deployment or ngrok tunnel).</p>
-              <p>&bull; <strong>iOS (Quick Look):</strong> Apple requires a USDZ asset for native AR placement. Full 3D inspection is supported directly in Safari.</p>
-              <p>&bull; <strong>Desktop:</strong> Use the QR code above to test touch controls and room placement on your smartphone.</p>
+            <div className="text-[11px] text-forma-text-secondary bg-blue-50 border border-blue-100 p-3 rounded-lg text-left space-y-1.5">
+              <p className="font-semibold text-forma-navy">Device &amp; AR Requirements:</p>
+              <p>
+                &bull; <strong>Android (Scene Viewer):</strong> Requires Chrome + Google Play Services for AR. Must be accessed over a <strong>public HTTPS URL</strong> (e.g. your deployed Render site) so Google's AR services can download the model.
+              </p>
+              <p>
+                &bull; <strong>iOS (Apple Quick Look):</strong> Native iOS AR requires a USDZ model file. Full interactive 3D WebGL viewing works natively on iPhone in Safari.
+              </p>
+              <p>
+                &bull; <strong>Desktop:</strong> Scan the QR code with your Android phone's camera to test room placement instantly.
+              </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
+            {/* If on Android on local HTTP, provide intent launcher anyway */}
+            {/android/i.test(navigator.userAgent || '') && (
+              <a
+                href={`intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(
+                  modelUrl.startsWith('http') ? modelUrl : new URL(modelUrl, window.location.origin).href
+                )}&mode=ar_only&resizable=true&title=${encodeURIComponent(
+                  productName
+                )}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(
+                  window.location.href
+                )};end;`}
+                className="block w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-forma-navy text-white hover:bg-forma-navy/90 transition-colors shadow-forma"
+              >
+                Launch Scene Viewer Intent Now
+              </a>
+            )}
+
+            <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={copyPageLink}
                 className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold border border-forma-border hover:bg-forma-muted text-forma-text transition-colors"

@@ -1,9 +1,20 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../config/database.js';
-import { createProductSchema, updateProductSchema, productIdParamSchema, paginationSchema } from '@forma3d/shared';
+import {
+  createProductSchema,
+  updateProductSchema,
+  productIdParamSchema,
+  paginationSchema,
+  PRODUCT_CATEGORIES,
+} from '@forma3d/shared';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation.js';
-import { uploadImage, validateImageSignature } from '../middleware/upload.js';
-import { saveUploadedImage, deleteFile } from '../services/storage.service.js';
+import {
+  uploadImage,
+  uploadModel,
+  validateImageSignature,
+  validateGlbSignature,
+} from '../middleware/upload.js';
+import { saveUploadedImage, saveModelFile, deleteFile } from '../services/storage.service.js';
 import { createAppError } from '../middleware/error-handler.js';
 
 const router = Router();
@@ -28,9 +39,16 @@ router.get(
       }
 
       if (status) {
-        where.generationJobs = {
-          some: { status },
-        };
+        if (status === 'SUCCEEDED') {
+          where.OR = [
+            { generationJobs: { some: { status: 'SUCCEEDED' } } },
+            { modelAssets: { some: { sourceType: 'UPLOAD' } } },
+          ];
+        } else {
+          where.generationJobs = {
+            some: { status },
+          };
+        }
       }
 
       const [products, total] = await Promise.all([
@@ -314,6 +332,187 @@ router.get(
         data: assets,
       });
     } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ─── POST /products/upload-model ────────────────────────────────────
+// Direct 3D model (.glb) upload without calling Tripo or requiring product photo
+router.post(
+  '/upload-model',
+  uploadModel.single('model'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        throw createAppError('No 3D model file provided', 400, 'NO_FILE');
+      }
+
+      // Validate GLB binary signature (glTF magic header)
+      const sig = validateGlbSignature(req.file.buffer);
+      if (!sig.valid) {
+        throw createAppError(
+          'Invalid 3D model file. The uploaded file does not match the binary glTF (.glb) specification.',
+          400,
+          'INVALID_GLB_SIGNATURE'
+        );
+      }
+
+      const rawName = (req.body.name as string | undefined)?.trim();
+      const rawCategory = (req.body.category as string | undefined)?.trim();
+      const validCategory = (PRODUCT_CATEGORIES as readonly string[]).includes(rawCategory || '')
+        ? rawCategory
+        : null;
+
+      // Clean default model name from filename if not explicitly provided
+      const defaultName = req.file.originalname
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[-_]/g, ' ')
+        .trim();
+      const finalName =
+        rawName ||
+        (defaultName
+          ? defaultName.charAt(0).toUpperCase() + defaultName.slice(1)
+          : 'Untitled 3D Model');
+
+      // 1. Save model binary into storage
+      const { relativePath, fileSize } = await saveModelFile(req.file.buffer, 'glb');
+
+      // 2. Create Product record
+      const product = await prisma.product.create({
+        data: {
+          name: finalName,
+          category: validCategory,
+        },
+      });
+
+      // 3. Create ModelAsset record linked directly to product (no generation job)
+      const asset = await prisma.modelAsset.create({
+        data: {
+          productId: product.id,
+          generationJobId: null,
+          sourceType: 'UPLOAD',
+          localFilePath: relativePath,
+          format: 'glb',
+          mimeType: 'model/gltf-binary',
+          fileSize,
+        },
+      });
+
+      console.log(
+        `✓ Direct 3D model uploaded: "${finalName}" (${(fileSize / (1024 * 1024)).toFixed(
+          2
+        )} MB) -> asset ${asset.id}`
+      );
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...product,
+          latestJob: null,
+          assets: [asset],
+        },
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('File too large')) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'FILE_TOO_LARGE',
+            message: '3D model exceeds the 50 MB upload limit.',
+          },
+        });
+        return;
+      }
+      if (err instanceof Error && err.message.includes('Only .glb')) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_FILE_TYPE',
+            message: err.message,
+          },
+        });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+// ─── POST /products/:id/upload-model ────────────────────────────────
+router.post(
+  '/:id/upload-model',
+  validateParams(productIdParamSchema),
+  uploadModel.single('model'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id as string;
+      const product = await prisma.product.findUnique({
+        where: { id },
+        include: { modelAssets: true },
+      });
+
+      if (!product) {
+        throw createAppError('Product not found', 404, 'NOT_FOUND');
+      }
+
+      if (!req.file) {
+        throw createAppError('No 3D model file provided', 400, 'NO_FILE');
+      }
+
+      const sig = validateGlbSignature(req.file.buffer);
+      if (!sig.valid) {
+        throw createAppError(
+          'Invalid 3D model file. The uploaded file does not match the binary glTF (.glb) specification.',
+          400,
+          'INVALID_GLB_SIGNATURE'
+        );
+      }
+
+      // Save new model binary
+      const { relativePath, fileSize } = await saveModelFile(req.file.buffer, 'glb');
+
+      // Create ModelAsset record
+      const asset = await prisma.modelAsset.create({
+        data: {
+          productId: id,
+          generationJobId: null,
+          sourceType: 'UPLOAD',
+          localFilePath: relativePath,
+          format: 'glb',
+          mimeType: 'model/gltf-binary',
+          fileSize,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...product,
+          assets: [asset, ...product.modelAssets],
+        },
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('File too large')) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'FILE_TOO_LARGE',
+            message: '3D model exceeds the 50 MB upload limit.',
+          },
+        });
+        return;
+      }
+      if (err instanceof Error && err.message.includes('Only .glb')) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_FILE_TYPE',
+            message: err.message,
+          },
+        });
+        return;
+      }
       next(err);
     }
   }

@@ -228,10 +228,10 @@ export function ViewerPage() {
 
         {/* Right: Asset & Source Image Details */}
         <div className="space-y-6">
-          {/* Card: Source Photo */}
+          {/* Card: Source Photo or Direct Upload Badge */}
           <div className="bg-forma-surface rounded-xl border border-forma-border p-5 card-shadow space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forma-text-secondary">
-              Input Photograph
+              {product.sourceImagePath ? 'Input Photograph' : 'Source Asset'}
             </h3>
             {product.isDemo ? (
               <div className="rounded-lg border border-forma-border bg-forma-bg overflow-hidden p-4 flex flex-col items-center justify-center h-48 text-center space-y-2">
@@ -252,14 +252,22 @@ export function ViewerPage() {
                 />
               </div>
             ) : (
-              <div className="h-40 rounded-lg border border-dashed border-forma-border flex items-center justify-center text-xs text-forma-text-secondary">
-                No source image available
+              <div className="rounded-lg border border-forma-border bg-forma-bg overflow-hidden p-4 flex flex-col items-center justify-center h-48 text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-forma-accent/10 flex items-center justify-center text-forma-accent mx-auto shadow-forma-sm">
+                  <FileBox className="w-6 h-6" />
+                </div>
+                <p className="text-xs font-semibold text-forma-text">Direct 3D Model Upload</p>
+                <p className="text-[11px] text-forma-text-secondary leading-tight">
+                  This 3D asset was uploaded directly to your library without AI generation or reference photo requirement.
+                </p>
               </div>
             )}
             <p className="text-[11px] text-forma-text-secondary">
               {product.isDemo
                 ? 'Standard GLB binary mesh with PBR metallic-roughness materials.'
-                : 'Generated from this 2D reference photo.'}
+                : product.sourceImagePath
+                ? 'Generated from this 2D reference photo.'
+                : 'Imported directly as a binary glTF (.glb) model.'}
             </p>
           </div>
 

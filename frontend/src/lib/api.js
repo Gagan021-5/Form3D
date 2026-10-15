@@ -115,6 +115,51 @@ export const api = {
     return json.data;
   },
 
+  // Direct 3D Model Upload (GLB)
+  async uploadModel(file, { name, category } = {}) {
+    const formData = new FormData();
+    formData.append('model', file);
+    if (name) formData.append('name', name);
+    if (category) formData.append('category', category);
+
+    const url = ENDPOINTS.uploadModel();
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const json = await response.json();
+    if (!response.ok || !json.success) {
+      throw new ApiError(
+        json.error?.message || 'Failed to upload 3D model',
+        json.error?.code || 'UPLOAD_FAILED'
+      );
+    }
+
+    return json.data;
+  },
+
+  async uploadProductModel(productId, file) {
+    const formData = new FormData();
+    formData.append('model', file);
+
+    const url = ENDPOINTS.uploadProductModel(productId);
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const json = await response.json();
+    if (!response.ok || !json.success) {
+      throw new ApiError(
+        json.error?.message || 'Failed to upload 3D model to product',
+        json.error?.code || 'UPLOAD_FAILED'
+      );
+    }
+
+    return json.data;
+  },
+
   // Generations
   async startGeneration(productId) {
     return request(ENDPOINTS.createGeneration(productId), {
@@ -135,6 +180,12 @@ export const api = {
   // Assets
   async getProductAssets(productId) {
     return request(ENDPOINTS.productAssets(productId));
+  },
+
+  async deleteAsset(assetId) {
+    return request(ENDPOINTS.deleteAsset(assetId), {
+      method: 'DELETE',
+    });
   },
 
   // Shopify Integration

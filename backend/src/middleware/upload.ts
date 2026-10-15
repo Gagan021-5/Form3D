@@ -1,6 +1,7 @@
 import multer from 'multer';
 import { config } from '../config/env.js';
-import { ALLOWED_IMAGE_MIMES } from '@forma3d/shared';
+import { ALLOWED_IMAGE_MIMES, MAX_MODEL_UPLOAD_SIZE_BYTES } from '@forma3d/shared';
+import path from 'path';
 
 /**
  * Multer upload middleware configured for image uploads.
@@ -19,6 +20,30 @@ export const uploadImage = multer({
       cb(
         new Error(
           `Invalid file type: ${file.mimetype}. Allowed types: ${ALLOWED_IMAGE_MIMES.join(', ')}`
+        )
+      );
+    }
+  },
+});
+
+/**
+ * Multer upload middleware configured for 3D model (.glb) uploads.
+ * Stores file in memory for binary signature verification before saving.
+ */
+export const uploadModel = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_MODEL_UPLOAD_SIZE_BYTES, // 50 MB
+    files: 1,
+  },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.glb') {
+      cb(null, true);
+    } else {
+      cb(
+        new Error(
+          `Invalid model file type: ${ext || 'unknown'}. Only .glb 3D model files are currently supported.`
         )
       );
     }
@@ -68,3 +93,42 @@ export function validateImageSignature(buffer: Buffer): {
 
   return { valid: false, detectedType: null };
 }
+
+/**
+ * Validate GLB (Binary glTF) magic bytes and header structure.
+ * Spec: 12-byte header:
+ * - uint32 magic = 0x46546C67 (ASCII 'glTF')
+ * - uint32 version = 1 or 2
+ * - uint32 length = total binary file length
+ */
+export function validateGlbSignature(buffer: Buffer): {
+  valid: boolean;
+  version?: number;
+  declaredLength?: number;
+} {
+  if (buffer.length < 12) {
+    return { valid: false };
+  }
+
+  // GLB magic: 0x46546C67 -> bytes [0x67, 0x6C, 0x54, 0x46] in little-endian
+  const isMagicGlb =
+    buffer[0] === 0x67 && // 'g'
+    buffer[1] === 0x6c && // 'l'
+    buffer[2] === 0x54 && // 'T'
+    buffer[3] === 0x46;   // 'F'
+
+  if (!isMagicGlb) {
+    return { valid: false };
+  }
+
+  const version = buffer.readUInt32LE(4);
+  const declaredLength = buffer.readUInt32LE(8);
+
+  // glTF 2.0 or 1.0
+  if (version !== 1 && version !== 2) {
+    return { valid: false, version, declaredLength };
+  }
+
+  return { valid: true, version, declaredLength };
+}
+

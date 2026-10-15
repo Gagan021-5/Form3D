@@ -16,8 +16,24 @@ export const errorHandler: ErrorRequestHandler = (
 ): void => {
   console.error('[ErrorHandler]', err.message);
 
-  const statusCode = err.statusCode || 500;
-  const code = err.code || 'INTERNAL_ERROR';
+  let statusCode = err.statusCode || 500;
+  let code = err.code || 'INTERNAL_ERROR';
+
+  // Handle Multer upload errors and file filter rejections
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    if (err.message.includes('File too large') || (err as any).code === 'LIMIT_FILE_SIZE') {
+      code = 'FILE_TOO_LARGE';
+    } else {
+      code = 'UPLOAD_ERROR';
+    }
+  } else if (
+    err.message.includes('Invalid file type') ||
+    err.message.includes('Invalid model file type')
+  ) {
+    statusCode = 400;
+    code = 'INVALID_FILE_TYPE';
+  }
 
   // Don't expose internal details in production
   const message =

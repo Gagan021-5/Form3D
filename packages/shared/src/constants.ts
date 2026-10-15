@@ -16,4 +16,16 @@ export const MODEL_FORMAT = {
   GLTF: 'gltf',
 } as const;
 
+export const MODEL_SOURCE_TYPE = {
+  GENERATION: 'GENERATION',
+  UPLOAD: 'UPLOAD',
+} as const;
+
+export const ALLOWED_MODEL_EXTENSIONS = ['.glb'] as const;
+export const ALLOWED_MODEL_MIMES = [
+  'model/gltf-binary',
+  'application/octet-stream',
+] as const;
+export const MAX_MODEL_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
 export const TRIPO_PROVIDER_NAME = 'tripo' as const;

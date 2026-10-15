@@ -14,6 +14,8 @@ import {
   Filter,
   CheckCircle2,
   Clock,
+  Maximize2,
+  Eye,
 } from 'lucide-react';
 
 export function LibraryPage() {
@@ -77,10 +79,37 @@ export function LibraryPage() {
     const downloadUrl = api.getAssetDownloadUrl(asset.id);
     const link = document.createElement('a');
     link.href = downloadUrl;
-    link.download = `${product.name}.glb`;
+    link.download = `${product.name.replace(/[^a-zA-Z0-9-_ ]/g, '')}.glb`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleLaunchAR = (product) => {
+    const asset = product.assets?.[0];
+    if (!asset) return;
+
+    const serveUrl = api.getAssetServeUrl(asset.id);
+    const absoluteGlbUrl = serveUrl.startsWith('http')
+      ? serveUrl
+      : new URL(serveUrl, window.location.origin).href;
+
+    const userAgent = (navigator.userAgent || '').toLowerCase();
+    const isAndroid = userAgent.includes('android');
+
+    if (isAndroid && absoluteGlbUrl.startsWith('https://')) {
+      const fallbackUrl = window.location.origin + `/viewer/${product.id}`;
+      const sceneViewerUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(
+        absoluteGlbUrl
+      )}&mode=ar_only&resizable=true&title=${encodeURIComponent(
+        product.name
+      )}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(
+        fallbackUrl
+      )};end;`;
+      window.location.href = sceneViewerUrl;
+    } else {
+      window.location.href = `/viewer/${product.id}`;
+    }
   };
 
   return (
@@ -92,7 +121,7 @@ export function LibraryPage() {
             Product 3D Library
           </h1>
           <p className="text-xs text-forma-text-secondary mt-0.5">
-            Manage and inspect generated 3D models stored in your local repository.
+            Manage persistent 3D models and test interactive orbit controls or real room AR placement.
           </p>
         </div>
 
@@ -101,7 +130,7 @@ export function LibraryPage() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover shadow-forma transition-all self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>New 3D Model</span>
+          <span>Upload 3D Model</span>
         </Link>
       </div>
 
@@ -128,7 +157,7 @@ export function LibraryPage() {
             className="px-3 py-2 text-xs rounded-lg border border-forma-border bg-forma-surface focus:outline-none focus:ring-2 focus:ring-forma-accent/20 focus:border-forma-accent text-forma-text"
           >
             <option value="">All Statuses</option>
-            <option value="SUCCEEDED">Completed</option>
+            <option value="SUCCEEDED">Ready</option>
             <option value="PROCESSING">Processing</option>
             <option value="QUEUED">Queued</option>
             <option value="FAILED">Failed</option>
@@ -164,7 +193,7 @@ export function LibraryPage() {
             <p className="text-xs text-forma-text-secondary">
               {search || statusFilter
                 ? 'No models match your search or filter criteria.'
-                : 'Your library is empty. Upload a product photograph to generate your first interactive 3D model.'}
+                : 'Your library is empty. Upload a .GLB 3D model to inspect in WebGL and view in AR.'}
             </p>
           </div>
           <Link
@@ -172,7 +201,7 @@ export function LibraryPage() {
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-semibold text-white bg-forma-accent hover:bg-forma-accent-hover shadow-forma transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Create 3D Model</span>
+            <span>Upload 3D Model</span>
           </Link>
         </div>
       ) : (
@@ -181,19 +210,18 @@ export function LibraryPage() {
           {products.map((product) => {
             const latestJob = product.latestJob;
             const asset = product.assets?.[0];
-            const isCompleted = latestJob?.status === 'SUCCEEDED' && !!asset;
-            const isRunning = ['QUEUED', 'PROCESSING', 'DOWNLOADING'].includes(
-              latestJob?.status || ''
-            );
-            const isFailed = latestJob?.status === 'FAILED';
+            const isCompleted = !!asset || latestJob?.status === 'SUCCEEDED';
+            const isRunning =
+              !asset && ['QUEUED', 'PROCESSING', 'DOWNLOADING'].includes(latestJob?.status || '');
+            const isFailed = !asset && latestJob?.status === 'FAILED';
 
             return (
               <div
                 key={product.id}
                 className="bg-forma-surface rounded-xl border border-forma-border overflow-hidden card-shadow card-hover flex flex-col"
               >
-                {/* Thumbnail Image Area */}
-                <div className="relative h-48 bg-[#F7F9FC] border-b border-forma-border p-3 flex items-center justify-center group overflow-hidden">
+                {/* Thumbnail / 3D Preview Area */}
+                <div className="relative h-48 bg-gradient-to-b from-[#F7F9FC] to-[#EEF2F7] border-b border-forma-border p-3 flex items-center justify-center group overflow-hidden">
                   {product.sourceImagePath ? (
                     <img
                       src={api.getProductImageUrl(product.id)}
@@ -201,7 +229,14 @@ export function LibraryPage() {
                       className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <Box className="w-10 h-10 text-forma-border" />
+                    <div className="flex flex-col items-center justify-center space-y-2 text-forma-text-secondary group-hover:scale-105 transition-transform duration-300">
+                      <div className="w-16 h-16 rounded-2xl bg-forma-accent/10 flex items-center justify-center text-forma-accent shadow-forma-sm">
+                        <Box className="w-8 h-8" />
+                      </div>
+                      <span className="text-[11px] font-medium text-forma-text-secondary">
+                        3D Asset File
+                      </span>
+                    </div>
                   )}
 
                   {/* Status Badge Overlay */}
@@ -251,19 +286,27 @@ export function LibraryPage() {
 
                   {/* Action Buttons */}
                   <div className="pt-2 border-t border-forma-border flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {isCompleted ? (
                         <>
                           <Link
                             to={`/viewer/${product.id}`}
-                            className="px-3 py-1.5 rounded-md text-xs font-semibold bg-forma-accent text-white hover:bg-forma-accent-hover transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-forma-accent text-white hover:bg-forma-accent-hover transition-colors flex items-center gap-1"
                           >
-                            <Box className="w-3.5 h-3.5" />
-                            <span>View 3D</span>
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Preview</span>
                           </Link>
                           <button
+                            onClick={() => handleLaunchAR(product)}
+                            title="View in Your Room (AR)"
+                            className="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-forma-navy text-white hover:bg-forma-navy/90 transition-colors flex items-center gap-1"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5 text-forma-accent" />
+                            <span>AR</span>
+                          </button>
+                          <button
                             onClick={() => downloadAsset(product)}
-                            title="Download GLB"
+                            title="Download GLB File"
                             className="p-1.5 rounded-md border border-forma-border text-forma-text hover:bg-forma-muted transition-colors"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -314,7 +357,7 @@ export function LibraryPage() {
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-forma-text">Delete Product?</h3>
                 <p className="text-xs text-forma-text-secondary leading-relaxed">
-                  Are you sure you want to delete <strong className="text-forma-text">"{deleteTarget.name}"</strong>? This will permanently remove the record and all associated image and GLB model files from local storage.
+                  Are you sure you want to delete <strong className="text-forma-text">"{deleteTarget.name}"</strong>? This will permanently remove the record and all associated image and GLB model files from persistent storage.
                 </p>
               </div>
             </div>

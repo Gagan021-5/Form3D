@@ -3,7 +3,7 @@ import prisma from '../config/database.js';
 import { assetIdParamSchema } from '@forma3d/shared';
 import { validateParams } from '../middleware/validation.js';
 import { createAppError } from '../middleware/error-handler.js';
-import { getAbsolutePath, fileExists } from '../services/storage.service.js';
+import { getAbsolutePath, fileExists, deleteFile } from '../services/storage.service.js';
 import path from 'path';
 
 const router = Router();
@@ -39,6 +39,7 @@ router.get(
 
       res.setHeader('Content-Type', asset.mimeType);
       res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
       res.setHeader(
         'Content-Disposition',
         `attachment; filename="${downloadName}"`
@@ -95,6 +96,8 @@ router.get(
 
       res.setHeader('Content-Type', asset.mimeType);
       res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
       res.setHeader('Content-Length', asset.fileSize);
       res.setHeader('Cache-Control', 'public, max-age=3600');
 
@@ -102,6 +105,39 @@ router.get(
         if (err && !res.headersSent) {
           next(createAppError('Error serving file', 500, 'SERVE_ERROR'));
         }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ─── DELETE /assets/:id ─────────────────────────────────────────────
+router.delete(
+  '/:id',
+  validateParams(assetIdParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id as string;
+      const asset = await prisma.modelAsset.findUnique({
+        where: { id },
+      });
+
+      if (!asset) {
+        throw createAppError('Asset not found', 404, 'NOT_FOUND');
+      }
+
+      // Delete file from storage
+      await deleteFile(asset.localFilePath);
+
+      // Delete asset record
+      await prisma.modelAsset.delete({
+        where: { id },
+      });
+
+      res.json({
+        success: true,
+        data: { deleted: true, assetId: id },
       });
     } catch (err) {
       next(err);

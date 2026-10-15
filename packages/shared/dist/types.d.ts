@@ -48,7 +48,8 @@ export interface GenerationJob {
 export interface ModelAsset {
     id: string;
     productId: string;
-    generationJobId: string;
+    generationJobId: string | null;
+    sourceType?: 'GENERATION' | 'UPLOAD';
     localFilePath: string;
     format: string;
     mimeType: string;

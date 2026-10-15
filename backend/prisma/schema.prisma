@@ -51,17 +51,18 @@ model GenerationJob {
 }
 
 model ModelAsset {
-  id              String   @id @default(uuid()) @db.Uuid
-  productId       String   @map("product_id") @db.Uuid
-  generationJobId String   @map("generation_job_id") @db.Uuid
-  localFilePath   String   @map("local_file_path")
-  format          String   @db.VarChar(20)
-  mimeType        String   @map("mime_type") @db.VarChar(100)
-  fileSize        Int      @map("file_size")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id              String         @id @default(uuid()) @db.Uuid
+  productId       String         @map("product_id") @db.Uuid
+  generationJobId String?        @map("generation_job_id") @db.Uuid
+  sourceType      String         @default("GENERATION") @map("source_type") @db.VarChar(20)
+  localFilePath   String         @map("local_file_path")
+  format          String         @db.VarChar(20)
+  mimeType        String         @map("mime_type") @db.VarChar(100)
+  fileSize        Int            @map("file_size")
+  createdAt       DateTime       @default(now()) @map("created_at")
 
-  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  generationJob GenerationJob @relation(fields: [generationJobId], references: [id], onDelete: Cascade)
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  generationJob GenerationJob? @relation(fields: [generationJobId], references: [id], onDelete: SetNull)
 
   @@index([productId])
   @@index([generationJobId])

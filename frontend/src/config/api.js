@@ -26,6 +26,10 @@ export const ENDPOINTS = {
   uploadProductImage: (id) => `${API_BASE_URL}/products/${id}/upload`,
   productAssets: (id) => `${API_BASE_URL}/products/${id}/assets`,
 
+  // Model Uploads
+  uploadModel: () => `${API_BASE_URL}/products/upload-model`,
+  uploadProductModel: (id) => `${API_BASE_URL}/products/${id}/upload-model`,
+
   // 3D Generation Tasks
   createGeneration: (productId) => `${API_BASE_URL}/products/${productId}/generations`,
   generation: (id) => `${API_BASE_URL}/generations/${id}`,
@@ -34,6 +38,7 @@ export const ENDPOINTS = {
   // Model Assets
   assetDownload: (id) => `${API_BASE_URL}/assets/${id}/download`,
   assetServe: (id) => `${API_BASE_URL}/assets/${id}/serve`,
+  deleteAsset: (id) => `${API_BASE_URL}/assets/${id}`,
 
   // Shopify Integration
   shopifyResolve: () => `${API_BASE_URL}/shopify/resolve`,

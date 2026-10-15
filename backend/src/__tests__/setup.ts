@@ -27,6 +27,7 @@ vi.mock('../config/database.js', () => {
         findMany: vi.fn(),
         findUnique: vi.fn(),
         create: vi.fn(),
+        delete: vi.fn(),
       },
       $connect: vi.fn(),
       $disconnect: vi.fn(),
