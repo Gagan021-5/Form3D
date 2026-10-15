@@ -18,6 +18,63 @@ async function main() {
       await prisma.$connect();
       isDbConnected = true;
       console.log('✓ Database connected');
+
+      // Auto-sync PostgreSQL schema: ensure tables & columns exist even on fresh Render deployments
+      try {
+        await prisma.$executeRawUnsafe(`
+          DO $$
+          BEGIN
+            CREATE TABLE IF NOT EXISTS "products" (
+              "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "name" VARCHAR(200) NOT NULL,
+              "category" VARCHAR(50),
+              "source_image_path" TEXT,
+              "source_image_mime_type" VARCHAR(100),
+              "source_image_size" INTEGER,
+              "shopify_product_id" VARCHAR(100),
+              "shopify_shop_domain" VARCHAR(200),
+              "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS "generation_jobs" (
+              "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "product_id" UUID NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+              "provider_name" VARCHAR(50) NOT NULL,
+              "provider_task_id" VARCHAR(200),
+              "status" VARCHAR(20) NOT NULL DEFAULT 'QUEUED',
+              "provider_status" VARCHAR(50),
+              "progress" INTEGER,
+              "error_code" VARCHAR(100),
+              "error_message" TEXT,
+              "retry_count" INTEGER NOT NULL DEFAULT 0,
+              "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "completed_at" TIMESTAMP(3)
+            );
+
+            CREATE TABLE IF NOT EXISTS "model_assets" (
+              "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "product_id" UUID NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+              "generation_job_id" UUID REFERENCES "generation_jobs"("id") ON DELETE SET NULL,
+              "source_type" VARCHAR(20) NOT NULL DEFAULT 'GENERATION',
+              "local_file_path" TEXT NOT NULL,
+              "format" VARCHAR(20) NOT NULL,
+              "mime_type" VARCHAR(100) NOT NULL,
+              "file_size" INTEGER NOT NULL,
+              "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'model_assets') THEN
+              ALTER TABLE "model_assets" ADD COLUMN IF NOT EXISTS "source_type" VARCHAR(20) DEFAULT 'GENERATION';
+              ALTER TABLE "model_assets" ALTER COLUMN "generation_job_id" DROP NOT NULL;
+            END IF;
+          END $$;
+        `);
+        console.log('✓ Database schema synchronized successfully');
+      } catch (schemaErr) {
+        console.warn('⚠️  Could not auto-sync database schema:', (schemaErr as Error).message);
+      }
     } catch (dbErr) {
       console.warn('⚠️  Could not connect to PostgreSQL database:', (dbErr as Error).message);
       console.warn('   Ensure DATABASE_URL is set correctly in your Render Environment Variables.');

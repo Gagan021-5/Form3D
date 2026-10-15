@@ -105,7 +105,7 @@ export function UploadPage() {
       if (err instanceof ApiError) {
         setErrorMessage(err.message);
       } else {
-        setErrorMessage('Failed to upload 3D model. Please verify your connection.');
+        setErrorMessage(err?.message || 'Failed to upload 3D model. Please verify your connection.');
       }
     }
   };

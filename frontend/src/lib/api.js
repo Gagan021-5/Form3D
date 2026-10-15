@@ -94,25 +94,58 @@ export const api = {
     });
   },
 
-  async uploadProductImage(productId, file) {
-    const formData = new FormData();
-    formData.append('image', file);
+  // Robust multipart/form-data upload helper
+  async uploadFormData(url, formData, defaultErrorMsg) {
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
+    } catch (err) {
+      throw new ApiError(
+        'Unable to connect to backend server. If using Render free tier, the backend may be waking up from sleep (takes ~30-50s). Also verify VITE_API_URL in your Render Static Site environment settings.',
+        'NETWORK_ERROR'
+      );
+    }
 
-    const url = ENDPOINTS.uploadProductImage(productId);
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+    let json;
+    try {
+      json = await response.json();
+    } catch (err) {
+      if (response.status === 413) {
+        throw new ApiError('File is too large for the server upload limit (HTTP 413).', 'FILE_TOO_LARGE');
+      }
+      if (response.status === 404) {
+        throw new ApiError(
+          'API endpoint not found (HTTP 404). In your Render Static Site settings, ensure VITE_API_URL is set to your backend URL (e.g. https://your-backend.onrender.com).',
+          'NOT_FOUND'
+        );
+      }
+      throw new ApiError(
+        `Server returned non-JSON response (HTTP ${response.status}). The backend service may still be starting up.`,
+        'SERVER_ERROR'
+      );
+    }
 
-    const json = await response.json();
     if (!response.ok || !json.success) {
       throw new ApiError(
-        json.error?.message || 'Failed to upload image',
-        json.error?.code || 'UPLOAD_FAILED'
+        json.error?.message || defaultErrorMsg,
+        json.error?.code || 'UPLOAD_FAILED',
+        json.error?.details
       );
     }
 
     return json.data;
+  },
+
+  async uploadProductImage(productId, file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.uploadFormData(ENDPOINTS.uploadProductImage(productId), formData, 'Failed to upload image');
   },
 
   // Direct 3D Model Upload (GLB)
@@ -122,42 +155,13 @@ export const api = {
     if (name) formData.append('name', name);
     if (category) formData.append('category', category);
 
-    const url = ENDPOINTS.uploadModel();
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const json = await response.json();
-    if (!response.ok || !json.success) {
-      throw new ApiError(
-        json.error?.message || 'Failed to upload 3D model',
-        json.error?.code || 'UPLOAD_FAILED'
-      );
-    }
-
-    return json.data;
+    return this.uploadFormData(ENDPOINTS.uploadModel(), formData, 'Failed to upload 3D model');
   },
 
   async uploadProductModel(productId, file) {
     const formData = new FormData();
     formData.append('model', file);
-
-    const url = ENDPOINTS.uploadProductModel(productId);
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const json = await response.json();
-    if (!response.ok || !json.success) {
-      throw new ApiError(
-        json.error?.message || 'Failed to upload 3D model to product',
-        json.error?.code || 'UPLOAD_FAILED'
-      );
-    }
-
-    return json.data;
+    return this.uploadFormData(ENDPOINTS.uploadProductModel(productId), formData, 'Failed to upload 3D model to product');
   },
 
   // Generations
